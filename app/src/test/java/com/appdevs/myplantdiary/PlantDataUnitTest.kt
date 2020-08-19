@@ -1,8 +1,12 @@
 package com.appdevs.myplantdiary
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.MutableLiveData
 import com.appdevs.myplantdiary.dto.Plant
+import com.appdevs.myplantdiary.service.PlantService
 import com.appdevs.myplantdiary.ui.main.MainViewModel
+import io.mockk.every
+import io.mockk.mockk
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -19,6 +23,7 @@ class PlantDataUnitTest {
     @get: Rule
     var rule: TestRule = InstantTaskExecutorRule( )
     lateinit var mvm : MainViewModel
+    var plantService =  mockk<PlantService>()
     @Test
     fun confirmEasternRedbud_outputsEasternRedbud() {
         val plant: Plant =Plant("Cercis", "canadesis", "Eastern Redbud")
@@ -27,7 +32,7 @@ class PlantDataUnitTest {
 
     @Test
     fun searchForRedbud_returnsRedbud(){
-        givenAFeedOfDataAreAvailable()
+        givenAFeedOfMockedDataAreAvailable()
         whenSearchForRedbud()
         thenResultContainsEasternRedbud()
 
@@ -35,7 +40,7 @@ class PlantDataUnitTest {
 
     @Test
     fun searchForGarbage_returnsNothing(){
-        givenAFeedOfDataAreAvailable()
+        givenAFeedOfMockedDataAreAvailable()
         whenISearchForGarbage()
         thenIGetZeroResults()
     }
@@ -68,10 +73,24 @@ class PlantDataUnitTest {
     private fun whenSearchForRedbud() {
         mvm.fetchPlants("Redbud")  }
 
-    private fun givenAFeedOfDataAreAvailable() {
+    private fun givenAFeedOfMockedDataAreAvailable() {
         mvm = MainViewModel()
+        createMockedData()
     }
 
+    private fun createMockedData() {
+        var allPlantsLiveData= MutableLiveData<ArrayList<Plant>>()
+        var allPlants = ArrayList<Plant>()
+        var redbud =    Plant("Cercis", "canadensis", "Eastern Redbud")
+        allPlants.add(redbud)
+        var redOak =    Plant("Quercus", "rubra", "Red Oak")
+        allPlants.add(redbud)
+        var whiteOak =    Plant("Quercus", "alba", "White Oak")
+        allPlants.add(redbud)
+        allPlantsLiveData.postValue(allPlants)
+        every { plantService.fetchPlants(any<String>()) } returns allPlantsLiveData
+        mvm.plantService = plantService
+    }
 
 
 }
